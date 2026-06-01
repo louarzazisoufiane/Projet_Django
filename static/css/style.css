@@ -1,0 +1,22 @@
+/* E-Shop Django — custom styles on top of Bootstrap 5 */
+
+body {
+    background-color: #f7f8fa;
+}
+
+.product-card {
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .12) !important;
+}
+
+.product-img {
+    height: 220px;
+    object-fit: cover;
+}
+
+.navbar-brand {
+    letter-spacing: .5px;
+}

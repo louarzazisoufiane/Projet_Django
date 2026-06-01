@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Mon profil — E-Shop Django{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-4">Mon profil</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card card-body shadow-sm">
+                <h2 class="h6 mb-3">Informations personnelles</h2>
+                {% include '_form_fields.html' with form=user_form %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card card-body shadow-sm">
+                <h2 class="h6 mb-3">Coordonnées de livraison</h2>
+                {% include '_form_fields.html' with form=profil_form %}
+            </div>
+        </div>
+    </div>
+    <button class="btn btn-primary mt-3">Enregistrer les modifications</button>
+    <a href="{% url 'orders:mes_commandes' %}" class="btn btn-outline-secondary mt-3">Mes commandes</a>
+</form>
+{% endblock %}

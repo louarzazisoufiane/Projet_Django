@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Produits — E-Shop Django{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h4 mb-0">Gestion des produits</h1>
+    <a href="{% url 'admin:products_produit_add' %}" class="btn btn-primary" target="_blank">
+        <i class="bi bi-plus-lg"></i> Ajouter un produit</a>
+</div>
+{% include 'dashboard/_nav.html' %}
+
+<p class="text-muted small">L'ajout, la modification et la suppression des produits se font via l'interface
+d'administration sécurisée de Django.</p>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead><tr><th>Produit</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Disponible</th><th></th></tr></thead>
+        <tbody>
+        {% for p in produits %}
+            <tr>
+                <td>{{ p.nom }}</td>
+                <td>{{ p.categorie.nom|default:"—" }}</td>
+                <td>{{ p.prix|floatformat:2|intcomma }} DH</td>
+                <td><span class="badge {% if p.quantite_stock == 0 %}bg-danger{% elif p.quantite_stock <= 5 %}bg-warning text-dark{% else %}bg-success{% endif %}">{{ p.quantite_stock }}</span></td>
+                <td>{% if p.disponible %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}</td>
+                <td class="text-end">
+                    <a href="{{ p.get_absolute_url }}" class="btn btn-sm btn-outline-secondary" target="_blank">Voir</a>
+                    <a href="{% url 'admin:products_produit_change' p.id %}" class="btn btn-sm btn-outline-primary" target="_blank">Modifier</a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" class="text-muted text-center py-4">Aucun produit.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

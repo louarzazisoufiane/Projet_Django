@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Clients — E-Shop Django{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-4">Liste des clients</h1>
+{% include 'dashboard/_nav.html' %}
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead><tr><th>Nom</th><th>E-mail</th><th>Commandes</th><th>Inscrit le</th></tr></thead>
+        <tbody>
+        {% for client in clients %}
+            <tr>
+                <td>{{ client.get_full_name }}</td>
+                <td>{{ client.email }}</td>
+                <td>{{ client.nb_commandes }}</td>
+                <td>{{ client.date_joined|date:"d/m/Y" }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4" class="text-muted text-center py-4">Aucun client.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

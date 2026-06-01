@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Catalogue — E-Shop Django{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Sidebar filters -->
+    <aside class="col-lg-3 mb-4">
+        <form method="get" class="card card-body shadow-sm">
+            <h5 class="mb-3">Filtres</h5>
+            {% if recherche %}<input type="hidden" name="q" value="{{ recherche }}">{% endif %}
+
+            <label class="form-label fw-semibold">Catégorie</label>
+            <select name="categorie" class="form-select mb-3" onchange="this.form.submit()">
+                <option value="">Toutes les catégories</option>
+                {% for c in categories %}
+                    <option value="{{ c.slug }}" {% if categorie_active and categorie_active.pk == c.pk %}selected{% endif %}>{{ c.nom }}</option>
+                {% endfor %}
+            </select>
+
+            <label class="form-label fw-semibold">Trier par</label>
+            <select name="tri" class="form-select mb-3" onchange="this.form.submit()">
+                <option value="recent" {% if tri == 'recent' %}selected{% endif %}>Plus récents</option>
+                <option value="ancien" {% if tri == 'ancien' %}selected{% endif %}>Plus anciens</option>
+                <option value="prix_asc" {% if tri == 'prix_asc' %}selected{% endif %}>Prix croissant</option>
+                <option value="prix_desc" {% if tri == 'prix_desc' %}selected{% endif %}>Prix décroissant</option>
+                <option value="nom" {% if tri == 'nom' %}selected{% endif %}>Nom (A→Z)</option>
+            </select>
+
+            <button class="btn btn-primary w-100" type="submit">Appliquer</button>
+            <a href="{% url 'products:catalogue' %}" class="btn btn-link w-100 mt-1">Réinitialiser</a>
+        </form>
+    </aside>
+
+    <!-- Product grid -->
+    <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="h4 mb-0">
+                {% if categorie_active %}{{ categorie_active.nom }}{% elif recherche %}Résultats pour « {{ recherche }} »{% else %}Catalogue{% endif %}
+            </h1>
+            <span class="text-muted small">{{ page_obj.paginator.count }} produit(s)</span>
+        </div>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+            {% for produit in page_obj %}
+                {% include 'products/_card.html' %}
+            {% empty %}
+                <p class="text-muted">Aucun produit ne correspond à votre recherche.</p>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.paginator.num_pages > 1 %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?{% if recherche %}q={{ recherche }}&{% endif %}{% if categorie_active %}categorie={{ categorie_active.slug }}&{% endif %}tri={{ tri }}&page={{ page_obj.previous_page_number }}">Précédent</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?{% if recherche %}q={{ recherche }}&{% endif %}{% if categorie_active %}categorie={{ categorie_active.slug }}&{% endif %}tri={{ tri }}&page={{ page_obj.next_page_number }}">Suivant</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

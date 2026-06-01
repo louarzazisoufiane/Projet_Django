@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Page introuvable{% endblock %}
+{% block content %}
+<div class="text-center py-5">
+    <i class="bi bi-compass display-1 text-secondary"></i>
+    <h1 class="h3 mt-3">Page introuvable</h1>
+    <p class="text-muted">La page que vous recherchez n'existe pas ou a été déplacée.</p>
+    <a href="{% url 'products:home' %}" class="btn btn-primary">Retour à l'accueil</a>
+</div>
+{% endblock %}

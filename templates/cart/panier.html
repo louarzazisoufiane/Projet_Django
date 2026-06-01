@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Mon panier — E-Shop Django{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-4">Mon panier</h1>
+
+{% if lignes %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr><th>Produit</th><th>Prix</th><th style="width:160px">Quantité</th><th>Sous-total</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for ligne in lignes %}
+                    <tr>
+                        <td>
+                            <a href="{{ ligne.produit.get_absolute_url }}" class="text-decoration-none fw-semibold">{{ ligne.produit.nom }}</a>
+                        </td>
+                        <td>{{ ligne.produit.prix|floatformat:2|intcomma }} DH</td>
+                        <td>
+                            <form action="{% url 'cart:modifier' ligne.id %}" method="post" class="d-flex gap-1">
+                                {% csrf_token %}
+                                <input type="number" name="quantite" value="{{ ligne.quantite }}" min="0"
+                                       max="{{ ligne.produit.quantite_stock }}" class="form-control form-control-sm">
+                                <button class="btn btn-sm btn-outline-secondary" title="Mettre à jour"><i class="bi bi-arrow-repeat"></i></button>
+                            </form>
+                        </td>
+                        <td class="fw-semibold">{{ ligne.sous_total|floatformat:2|intcomma }} DH</td>
+                        <td>
+                            <form action="{% url 'cart:supprimer' ligne.id %}" method="post">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-outline-danger" title="Retirer"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <form action="{% url 'cart:vider' %}" method="post">
+            {% csrf_token %}
+            <button class="btn btn-link text-danger">Vider le panier</button>
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card card-body shadow-sm">
+            <h2 class="h6">Récapitulatif</h2>
+            <div class="d-flex justify-content-between"><span>Articles</span><span>{{ panier.nombre_articles }}</span></div>
+            <hr>
+            <div class="d-flex justify-content-between fs-5 fw-bold">
+                <span>Total</span><span>{{ panier.montant_total|floatformat:2|intcomma }} DH</span>
+            </div>
+            <a href="{% url 'orders:checkout' %}" class="btn btn-primary mt-3 w-100">Valider la commande</a>
+            <a href="{% url 'products:catalogue' %}" class="btn btn-link mt-1 w-100">Continuer mes achats</a>
+        </div>
+    </div>
+</div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-cart-x display-1 text-muted"></i>
+        <p class="text-muted mt-3">Votre panier est vide.</p>
+        <a href="{% url 'products:catalogue' %}" class="btn btn-primary">Voir le catalogue</a>
+    </div>
+{% endif %}
+{% endblock %}

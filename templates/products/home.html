@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Accueil — E-Shop Django{% endblock %}
+
+{% block content %}
+<div class="p-5 mb-4 bg-primary text-white rounded-3 shadow-sm">
+    <div class="container-fluid py-3">
+        <h1 class="display-5 fw-bold">Bienvenue sur E-Shop Django</h1>
+        <p class="col-md-8 fs-5">Découvrez notre catalogue de produits et profitez de recommandations
+            intelligentes adaptées à vos centres d'intérêt.</p>
+        <a href="{% url 'products:catalogue' %}" class="btn btn-light btn-lg">Explorer le catalogue</a>
+    </div>
+</div>
+
+{% if categories %}
+<h2 class="h4 mb-3">Catégories</h2>
+<div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-2 mb-5">
+    {% for c in categories %}
+        <div class="col">
+            <a href="{% url 'products:catalogue' %}?categorie={{ c.slug }}"
+               class="btn btn-outline-secondary w-100">{{ c.nom }}</a>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0">Nos produits</h2>
+    <a href="{% url 'products:catalogue' %}" class="btn btn-link">Tout voir →</a>
+</div>
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for produit in produits %}
+        {% include 'products/_card.html' %}
+    {% empty %}
+        <p class="text-muted">Aucun produit disponible pour le moment.</p>
+    {% endfor %}
+</div>
+{% endblock %}

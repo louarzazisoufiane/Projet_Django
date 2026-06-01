@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Gestion des commandes — E-Shop Django{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-4">Gestion des commandes</h1>
+{% include 'dashboard/_nav.html' %}
+
+<form method="get" class="mb-3">
+    <div class="input-group" style="max-width:360px">
+        <select name="statut" class="form-select" onchange="this.form.submit()">
+            <option value="">Tous les statuts</option>
+            {% for value, label in statuts %}
+                <option value="{{ value }}" {% if statut_actif == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead><tr><th>#</th><th>Date</th><th>Client</th><th>Articles</th><th>Montant</th><th>Statut</th></tr></thead>
+        <tbody>
+        {% for c in commandes %}
+            <tr>
+                <td class="fw-semibold">#{{ c.id }}</td>
+                <td>{{ c.date_commande|date:"d/m/Y H:i" }}</td>
+                <td>{{ c.client.get_full_name }}<br><small class="text-muted">{{ c.client.email }}</small></td>
+                <td>{{ c.nombre_articles }}</td>
+                <td>{{ c.montant_total|floatformat:2|intcomma }} DH</td>
+                <td>
+                    <form action="{% url 'dashboard:changer_statut' c.id %}" method="post" class="d-flex gap-1">
+                        {% csrf_token %}
+                        <select name="statut" class="form-select form-select-sm">
+                            {% for value, label in statuts %}
+                                <option value="{{ value }}" {% if c.statut == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-sm btn-primary">OK</button>
+                    </form>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" class="text-muted text-center py-4">Aucune commande.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% load humanize %}
+<div class="col">
+    <div class="card h-100 shadow-sm product-card">
+        <a href="{{ produit.get_absolute_url }}" class="text-decoration-none">
+            {% if produit.image %}
+                <img src="{{ produit.image.url }}" class="card-img-top product-img" alt="{{ produit.nom }}">
+            {% else %}
+                <div class="product-img d-flex align-items-center justify-content-center bg-light text-muted">
+                    <i class="bi bi-image fs-1"></i>
+                </div>
+            {% endif %}
+        </a>
+        <div class="card-body d-flex flex-column">
+            {% if produit.categorie %}
+                <span class="badge bg-secondary-subtle text-secondary-emphasis align-self-start mb-1">{{ produit.categorie.nom }}</span>
+            {% endif %}
+            <h6 class="card-title">
+                <a href="{{ produit.get_absolute_url }}" class="text-decoration-none text-dark">{{ produit.nom }}</a>
+            </h6>
+            {% if produit.note_moyenne %}
+                <div class="text-warning small mb-1">
+                    <i class="bi bi-star-fill"></i> {{ produit.note_moyenne }}
+                    <span class="text-muted">({{ produit.nombre_avis }})</span>
+                </div>
+            {% endif %}
+            <div class="mt-auto">
+                <p class="fw-bold fs-5 mb-2 text-primary">{{ produit.prix|floatformat:2|intcomma }} DH</p>
+                {% if produit.en_stock %}
+                    <span class="badge bg-success-subtle text-success-emphasis">En stock</span>
+                {% else %}
+                    <span class="badge bg-danger-subtle text-danger-emphasis">Indisponible</span>
+                {% endif %}
+                <a href="{{ produit.get_absolute_url }}" class="btn btn-sm btn-outline-primary float-end">Voir</a>
+            </div>
+        </div>
+    </div>
+</div>

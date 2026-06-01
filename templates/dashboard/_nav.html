@@ -1,0 +1,7 @@
+<ul class="nav nav-pills mb-4 flex-wrap">
+    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'accueil' %}active{% endif %}" href="{% url 'dashboard:accueil' %}">Statistiques</a></li>
+    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'produits' %}active{% endif %}" href="{% url 'dashboard:produits' %}">Produits</a></li>
+    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'commandes' %}active{% endif %}" href="{% url 'dashboard:commandes' %}">Commandes</a></li>
+    <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'clients' %}active{% endif %}" href="{% url 'dashboard:clients' %}">Clients</a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}" target="_blank">Admin Django ↗</a></li>
+</ul>

@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load humanize widget_tweaks %}
+{% block title %}{{ produit.nom }} — E-Shop Django{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'products:home' %}">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'products:catalogue' %}">Catalogue</a></li>
+        <li class="breadcrumb-item active">{{ produit.nom }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <div class="col-md-5">
+        {% if produit.image %}
+            <img src="{{ produit.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ produit.nom }}">
+        {% else %}
+            <div class="ratio ratio-1x1 bg-light rounded d-flex align-items-center justify-content-center text-muted">
+                <i class="bi bi-image fs-1"></i>
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-7">
+        {% if produit.categorie %}<span class="badge bg-secondary mb-2">{{ produit.categorie.nom }}</span>{% endif %}
+        <h1 class="h3">{{ produit.nom }}</h1>
+        {% if produit.note_moyenne %}
+            <p class="text-warning mb-2">
+                <i class="bi bi-star-fill"></i> {{ produit.note_moyenne }} / 5
+                <span class="text-muted">— {{ produit.nombre_avis }} avis</span>
+            </p>
+        {% endif %}
+        <p class="display-6 text-primary fw-bold">{{ produit.prix|floatformat:2|intcomma }} DH</p>
+        <p>{{ produit.description|linebreaksbr|default:"Pas de description." }}</p>
+
+        {% if produit.en_stock %}
+            <p class="text-success"><i class="bi bi-check-circle"></i> En stock ({{ produit.quantite_stock }} disponibles)</p>
+            <form action="{% url 'cart:ajouter' produit.id %}" method="post" class="row g-2 align-items-end" style="max-width:360px">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <div class="col-4">
+                    <label class="form-label small">Quantité</label>
+                    <input type="number" name="quantite" value="1" min="1" max="{{ produit.quantite_stock }}" class="form-control">
+                </div>
+                <div class="col-8">
+                    <button class="btn btn-primary w-100"><i class="bi bi-cart-plus"></i> Ajouter au panier</button>
+                </div>
+            </form>
+        {% else %}
+            <p class="text-danger"><i class="bi bi-x-circle"></i> Produit indisponible</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recommendations (AI) -->
+{% if recommandations %}
+<section class="mt-5">
+    <h2 class="h5 mb-3"><i class="bi bi-stars text-warning"></i> Produits similaires recommandés</h2>
+    <div class="row row-cols-2 row-cols-md-4 g-3">
+        {% for produit in recommandations %}
+            {% include 'products/_card.html' %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Reviews -->
+<section class="mt-5">
+    <h2 class="h5 mb-3">Avis des clients</h2>
+    <div class="row">
+        <div class="col-md-7">
+            {% for a in avis %}
+                <div class="border-bottom py-2">
+                    <div class="text-warning">
+                        {% for _ in "12345"|make_list %}
+                            {% if forloop.counter <= a.note %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                        {% endfor %}
+                        <span class="text-dark fw-semibold ms-2">{{ a.utilisateur.get_short_name }}</span>
+                        <span class="text-muted small">· {{ a.cree_le|date:"d/m/Y" }}</span>
+                    </div>
+                    {% if a.commentaire %}<p class="mb-1">{{ a.commentaire }}</p>{% endif %}
+                    {% if a.utilisateur == user %}
+                        <form action="{% url 'products:supprimer_avis' a.id %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-link text-danger p-0">Supprimer mon avis</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p class="text-muted">Aucun avis pour le moment. Soyez le premier !</p>
+            {% endfor %}
+        </div>
+
+        <div class="col-md-5">
+            <div class="card card-body">
+                <h3 class="h6">{% if avis_utilisateur %}Modifier votre avis{% else %}Laisser un avis{% endif %}</h3>
+                {% if user.is_authenticated %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-2">
+                            <label class="form-label">Note</label>
+                            {% render_field form.note class="form-select" %}
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Commentaire</label>
+                            {% render_field form.commentaire class="form-control" %}
+                        </div>
+                        <button class="btn btn-primary btn-sm">Envoyer</button>
+                    </form>
+                {% else %}
+                    <p class="text-muted small mb-0"><a href="{% url 'accounts:login' %}">Connectez-vous</a> pour laisser un avis.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

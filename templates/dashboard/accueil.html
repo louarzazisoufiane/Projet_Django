@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Tableau de bord — E-Shop Django{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-4">Tableau de bord</h1>
+{% include 'dashboard/_nav.html' %}
+
+<!-- Key figures -->
+<div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+    <div class="col"><div class="card text-bg-primary shadow-sm"><div class="card-body">
+        <div class="fs-2 fw-bold">{{ nb_produits }}</div><div>Produits</div></div></div></div>
+    <div class="col"><div class="card text-bg-success shadow-sm"><div class="card-body">
+        <div class="fs-2 fw-bold">{{ nb_clients }}</div><div>Clients</div></div></div></div>
+    <div class="col"><div class="card text-bg-info shadow-sm"><div class="card-body">
+        <div class="fs-2 fw-bold">{{ nb_commandes }}</div><div>Commandes</div></div></div></div>
+    <div class="col"><div class="card text-bg-dark shadow-sm"><div class="card-body">
+        <div class="fs-4 fw-bold">{{ chiffre_affaires|floatformat:2|intcomma }} DH</div><div>Chiffre d'affaires</div></div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card card-body shadow-sm">
+            <h2 class="h6 mb-3">Produits les plus vendus</h2>
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Produit</th><th class="text-end">Qté vendue</th></tr></thead>
+                <tbody>
+                {% for p in produits_populaires %}
+                    <tr><td>{{ p.nom_produit }}</td><td class="text-end">{{ p.quantite_vendue }}</td></tr>
+                {% empty %}
+                    <tr><td colspan="2" class="text-muted">Aucune vente pour le moment.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card card-body shadow-sm">
+            <h2 class="h6 mb-3">Commandes par statut</h2>
+            {% for label, total in commandes_par_statut.items %}
+                <div class="d-flex justify-content-between border-bottom py-1">
+                    <span>{{ label }}</span><span class="fw-semibold">{{ total }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card card-body shadow-sm">
+            <h2 class="h6 mb-3">Commandes récentes</h2>
+            <table class="table table-sm mb-0">
+                <thead><tr><th>#</th><th>Client</th><th>Montant</th><th>Statut</th></tr></thead>
+                <tbody>
+                {% for c in commandes_recentes %}
+                    <tr>
+                        <td><a href="{% url 'dashboard:commandes' %}">#{{ c.id }}</a></td>
+                        <td>{{ c.client.get_short_name }}</td>
+                        <td>{{ c.montant_total|floatformat:2|intcomma }} DH</td>
+                        <td><span class="badge bg-secondary">{{ c.get_statut_display }}</span></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4" class="text-muted">Aucune commande.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card card-body shadow-sm">
+            <h2 class="h6 mb-3">Stock faible (≤ 5)</h2>
+            <table class="table table-sm mb-0">
+                <tbody>
+                {% for p in stock_faible %}
+                    <tr><td>{{ p.nom }}</td><td class="text-end">
+                        <span class="badge {% if p.quantite_stock == 0 %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ p.quantite_stock }}</span></td></tr>
+                {% empty %}
+                    <tr><td class="text-muted">Tous les stocks sont suffisants.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
