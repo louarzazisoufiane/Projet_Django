@@ -23,11 +23,23 @@ if [ -n "$DJANGO_SUPERUSER_EMAIL" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ]; then
 from django.contrib.auth import get_user_model
 U = get_user_model()
 email = "$DJANGO_SUPERUSER_EMAIL"
-if not U.objects.filter(email=email).exists():
-    U.objects.create_superuser(email=email, password="$DJANGO_SUPERUSER_PASSWORD",
+password = "$DJANGO_SUPERUSER_PASSWORD"
+user = U.objects.filter(email=email).first()
+if user is None:
+    U.objects.create_superuser(email=email, password=password,
                                first_name="Admin", last_name="Principal")
     print("Superutilisateur créé:", email)
+else:
+    user.is_staff = True
+    user.is_superuser = True
+    if hasattr(user, "role"):
+        user.role = "ADMIN"
+    user.set_password(password)
+    user.save()
+    print("Superutilisateur mis à jour:", email)
 PYTHON
+else
+    echo "DJANGO_SUPERUSER_EMAIL/PASSWORD non définis; aucun superutilisateur créé."
 fi
 
 exec "$@"
