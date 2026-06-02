@@ -57,7 +57,9 @@
       "Bash(./aa/bin/python -c \"import yaml; yaml.safe_load\\(open\\('.github/workflows/ci-cd.yml'\\)\\); print\\('YAML OK'\\)\")",
       "Bash(DEBUG=False SECRET_KEY=x ./aa/bin/python manage.py check --deploy)",
       "Bash(DEBUG=False SECRET_KEY=test-long-secret-key-for-check ./aa/bin/python manage.py check --deploy)",
-      "Bash(echo \"FLAKE_EXIT:$?\")"
+      "Bash(echo \"FLAKE_EXIT:$?\")",
+      "Bash(git rm *)",
+      "Bash(rmdir nginx *)"
     ]
   }
 }

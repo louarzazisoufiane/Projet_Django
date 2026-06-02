@@ -15,7 +15,6 @@ services:
       retries: 5
 
   web:
-
     image: ${WEB_IMAGE:-louarzazi/django-ecommerce:latest}
     restart: unless-stopped
     env_file: .env
@@ -25,23 +24,10 @@ services:
     volumes:
       - media_data:/app/media
       - static_data:/app/staticfiles
-    expose:
-      - "8000"
-
-  nginx:
-    # Image nginx avec la config intégrée (publiée par la CI/CD) : aucun bind
-    # mount de fichier, donc compatible avec le déploiement « raw » de Dokploy.
-    image: ${NGINX_IMAGE:-louarzazi/django-ecommerce-nginx:latest}
-    restart: unless-stopped
-    depends_on:
-      - web
-    # Le port 80 est réservé au reverse-proxy (Traefik) de Dokploy.
-    # nginx écoute sur 8000 DANS le conteneur → on expose <port hôte 8130>:8000.
+    # gunicorn écoute sur 8000 dans le conteneur. On publie un port hôte (8130)
+    # que Dokploy/Traefik (sur 80) pourra router, ou accessible directement.
     ports:
-      - "${NGINX_PORT:-8130}:8000"
-    volumes:
-      - media_data:/app/media:ro
-      - static_data:/app/staticfiles:ro
+      - "${WEB_PORT:-8130}:8000"
 
 volumes:
   postgres_data:

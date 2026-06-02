@@ -58,7 +58,7 @@ Application : http://127.0.0.1:8000 — Administration : http://127.0.0.1:8000/d
 > Sans variable `DB_NAME`, le projet utilise SQLite automatiquement. Renseignez les
 > variables `DB_*` dans `.env` pour utiliser PostgreSQL.
 
-## Déploiement avec Docker Compose (PostgreSQL + Gunicorn + Nginx)
+## Déploiement avec Docker Compose (PostgreSQL + Gunicorn)
 
 ```bash
 cp .env.example .env          # renseignez SECRET_KEY, DEBUG=False, DB_*, POSTGRES_*
@@ -72,9 +72,12 @@ commit), définissez `WEB_IMAGE` dans `.env`, par exemple
 `WEB_IMAGE=louarzazi/django-ecommerce:<sha>`. Pour construire localement à la
 place, remplacez la ligne `image:` du service `web` par `build: .`.
 
-L'application est servie par Nginx sur http://localhost (port 80). Le conteneur web
-applique les migrations, collecte les fichiers statiques et crée le compte
-administrateur défini par `DJANGO_SUPERUSER_EMAIL` / `DJANGO_SUPERUSER_PASSWORD`.
+L'application (Gunicorn) est exposée sur le port hôte `WEB_PORT` (défaut `8130`)
+→ http://localhost:8130. Les fichiers **statiques** sont servis par **WhiteNoise**
+et les **médias** par Django. Derrière un reverse-proxy (p. ex. Traefik de
+Dokploy), faites pointer le domaine vers le service `web`, port conteneur `8000`.
+Le conteneur web applique les migrations, collecte les fichiers statiques et crée
+le compte administrateur (`DJANGO_SUPERUSER_EMAIL` / `DJANGO_SUPERUSER_PASSWORD`).
 
 ## Variables d'environnement
 
