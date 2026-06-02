@@ -2,16 +2,20 @@ services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    # On dérive les identifiants Postgres des MÊMES variables que Django (DB_*),
+    # avec des valeurs par défaut intégrées : impossible d'initialiser la base
+    # sans utilisateur, même si Dokploy n'interpole pas les variables.
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-ecommerce_db}
+      POSTGRES_USER: ${DB_USER:-ecommerce_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ecommerce123}
     volumes:
-      # Volume renommé pour forcer une réinitialisation propre de Postgres avec
-      # le mot de passe courant (l'ancien volume avait un mot de passe obsolète).
-      - postgres_data_v2:/var/lib/postgresql/data
+      # Volume versionné : un changement de nom force une réinitialisation propre
+      # de Postgres avec les identifiants courants.
+      - postgres_data_v3:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      # $$ → la variable est évaluée par le shell DANS le conteneur (robuste).
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -20,6 +24,15 @@ services:
     image: ${WEB_IMAGE:-louarzazi/django-ecommerce:latest}
     restart: unless-stopped
     env_file: .env
+    # Identifiants base de données : mêmes valeurs/défauts que le service db,
+    # garantissant que web et db sont toujours d'accord.
+    environment:
+      DB_ENGINE: ${DB_ENGINE:-django.db.backends.postgresql}
+      DB_NAME: ${DB_NAME:-ecommerce_db}
+      DB_USER: ${DB_USER:-ecommerce_user}
+      DB_PASSWORD: ${DB_PASSWORD:-ecommerce123}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
     depends_on:
       db:
         condition: service_healthy
@@ -32,7 +45,7 @@ services:
       - "8130:8000"
 
 volumes:
-  postgres_data_v2:
+  postgres_data_v3:
   media_data:
   static_data:
 
