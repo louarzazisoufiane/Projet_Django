@@ -141,14 +141,17 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
+      # On utilise l'image officielle de Trivy plutôt que l'action GitHub afin
+      # d'éviter les problèmes de résolution de version de l'action.
       - name: Scan de l'image avec Trivy
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          image-ref: ${{ needs.docker.outputs.image }}
-          format: table
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: "0"   # informatif ; passer à "1" pour bloquer sur CRITICAL/HIGH
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image \
+            --severity CRITICAL,HIGH \
+            --ignore-unfixed \
+            --exit-code 0 \
+            ${{ needs.docker.outputs.image }}
 
   # ── 5. Notification en cas d'échec de la pipeline (avancé) ─────────────────
   notify-failure:
