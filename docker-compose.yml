@@ -29,14 +29,17 @@ services:
       - "8000"
 
   nginx:
-    image: nginx:1.27-alpine
+    # Image nginx avec la config intégrée (publiée par la CI/CD) : aucun bind
+    # mount de fichier, donc compatible avec le déploiement « raw » de Dokploy.
+    image: ${NGINX_IMAGE:-louarzazi/django-ecommerce-nginx:latest}
     restart: unless-stopped
     depends_on:
       - web
+    # On ne publie PAS sur 80 (réservé au Traefik de Dokploy). Port configurable.
+    # nginx écoute sur 80 DANS le conteneur → on mappe <port hôte>:80.
     ports:
-      - "8130:8000"
+      - "${NGINX_PORT:-8130}:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - media_data:/app/media:ro
       - static_data:/app/staticfiles:ro
 
