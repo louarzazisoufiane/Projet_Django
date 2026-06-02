@@ -11,12 +11,17 @@ from django.db.models import Avg
 from django.urls import reverse
 from django.utils.text import slugify
 
+from .validators import valider_extension_image, valider_taille_image
+
 
 class Categorie(models.Model):
     nom = models.CharField('nom', max_length=150, unique=True)
     slug = models.SlugField(max_length=170, unique=True, blank=True)
     description = models.TextField('description', blank=True)
-    image = models.ImageField('image', upload_to='categories/', blank=True, null=True)
+    image = models.ImageField(
+        'image', upload_to='categories/', blank=True, null=True,
+        validators=[valider_extension_image, valider_taille_image],
+    )
     cree_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -42,7 +47,10 @@ class Produit(models.Model):
     slug = models.SlugField(max_length=275, unique=True, blank=True)
     description = models.TextField('description', blank=True)
     prix = models.DecimalField('prix', max_digits=10, decimal_places=2)
-    image = models.ImageField('image', upload_to='produits/', blank=True, null=True)
+    image = models.ImageField(
+        'image', upload_to='produits/', blank=True, null=True,
+        validators=[valider_extension_image, valider_taille_image],
+    )
     categorie = models.ForeignKey(
         Categorie,
         on_delete=models.SET_NULL,

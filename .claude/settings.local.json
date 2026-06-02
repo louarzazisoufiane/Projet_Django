@@ -44,7 +44,20 @@
       "Bash(git commit *)",
       "Bash(git config *)",
       "Bash(wait)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(gh auth *)",
+      "Bash(./aa/bin/python manage.py makemigrations products)",
+      "Bash(./aa/bin/python manage.py check)",
+      "Bash(./aa/bin/python manage.py test)",
+      "Bash(./aa/bin/pip install *)",
+      "Bash(./aa/bin/python -m flake8 . --count)",
+      "Bash(sed -n '7p' accounts/views.py)",
+      "Bash(sed -n '9p' dashboard/views.py)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(./aa/bin/python -c \"import yaml; yaml.safe_load\\(open\\('.github/workflows/ci-cd.yml'\\)\\); print\\('YAML OK'\\)\")",
+      "Bash(DEBUG=False SECRET_KEY=x ./aa/bin/python manage.py check --deploy)",
+      "Bash(DEBUG=False SECRET_KEY=test-long-secret-key-for-check ./aa/bin/python manage.py check --deploy)",
+      "Bash(echo \"FLAKE_EXIT:$?\")"
     ]
   }
 }

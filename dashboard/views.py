@@ -6,7 +6,7 @@ products, categories, orders, clients and stock.
 """
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.db.models import Count, DecimalField, F, Sum
+from django.db.models import Count, DecimalField, Sum
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect, render
 

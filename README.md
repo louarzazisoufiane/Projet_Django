@@ -85,12 +85,43 @@ python manage.py test
 - Authentification obligatoire pour passer une commande.
 - Mots de passe gérés et hachés par le système d'authentification de Django.
 - Protection CSRF activée, formulaires validés côté serveur.
-- Espace d'administration et tableau de bord réservés aux gestionnaires.
+- Espace d'administration et tableau de bord réservés aux gestionnaires
+  (décorateur `gestionnaire_required` ; les clients reçoivent une page 403).
 - `DEBUG=False`, cookies sécurisés et en-têtes de sécurité activés en production.
 - Variables sensibles stockées dans `.env` (jamais publié).
+- **Fichiers uploadés contrôlés** : extensions autorisées (`jpg/jpeg/png/webp/gif`)
+  et taille limitée à 5 Mo (voir `products/validators.py`).
+- **Gestion des erreurs** : pages `404`, `403` et `500` personnalisées et
+  journalisation (`LOGGING` dans `settings.py`, niveau via `LOG_LEVEL`).
 
 ## Pipeline CI/CD
 
-`.github/workflows/ci-cd.yml` : à chaque push sur `main`, GitHub Actions installe
-Python, les dépendances, exécute les migrations et les tests, vérifie la qualité du
-code (flake8), puis construit et publie l'image Docker sur GitHub Container Registry.
+`.github/workflows/ci-cd.yml` : à chaque push sur `main`/`master`, GitHub Actions
+exécute la pipeline suivante.
+
+**Pipeline minimale (§11.1)**
+
+1. récupération du code (`checkout`) ;
+2. installation de Python 3.12 ;
+3. installation des dépendances ;
+4. migrations en environnement de test (PostgreSQL de service) ;
+5. exécution des tests (`manage.py test`) ;
+6. vérification de la qualité du code (`flake8`, config dans `setup.cfg`) ;
+7. construction de l'image Docker ;
+8. publication de l'image sur **Docker Hub**
+   (`docker.io/<DOCKERHUB_USERNAME>/django-ecommerce`).
+
+> **Secrets requis** (Settings → Secrets and variables → Actions) :
+> `DOCKERHUB_USERNAME` (identifiant Docker Hub) et `DOCKERHUB_TOKEN`
+> (jeton d'accès créé dans Docker Hub → Account Settings → Security).
+
+**Pipeline avancée (§11.2)**
+
+- scan de sécurité des dépendances (`pip-audit`) ;
+- scan de sécurité de l'image Docker (`Trivy`) ;
+- séparation des environnements (variables de test dédiées, jamais de prod) ;
+- notification en cas d'échec de la pipeline (job `notify-failure`, webhook
+  Slack/Discord à brancher).
+
+> Les scans sont configurés en mode informatif. Pour les rendre bloquants :
+> retirer `|| true` du `pip-audit` et passer `exit-code: "1"` sur l'étape Trivy.

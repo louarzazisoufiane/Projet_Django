@@ -1,14 +1,28 @@
 name: CI/CD
 
+# §11 — À chaque push sur la branche principale, la pipeline :
+#   1. récupère le code   2. installe Python   3. installe les dépendances
+#   4. lance les migrations (env. de test)   5. exécute les tests
+#   6. vérifie la qualité du code   7. construit l'image Docker
+#   8. publie l'image sur GitHub Container Registry.
+# Étapes avancées : scan de sécurité des dépendances, scan de l'image Docker,
+# séparation des environnements et notification en cas d'échec.
+
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
 
+env:
+  # Image publiée sur Docker Hub : <utilisateur>/<nom-image>.
+  # L'utilisateur provient du secret DOCKERHUB_USERNAME.
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/django-ecommerce
+
 jobs:
-  # ── 1. Tests & code quality ────────────────────────────────────────────────
+  # ── 1. Tests & qualité du code (environnement de TEST) ─────────────────────
   test:
+    name: Tests & qualité du code
     runs-on: ubuntu-latest
 
     services:
@@ -26,6 +40,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+    # Environnement de test : variables dédiées, jamais celles de production.
     env:
       SECRET_KEY: test-secret-key
       DEBUG: "True"
@@ -51,33 +66,62 @@ jobs:
           pip install -r requirements.txt
           pip install flake8
 
-      - name: Lint (flake8)
+      # Qualité du code (§11.6) : barrière sur les erreurs de syntaxe…
+      - name: Lint — erreurs critiques
         run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
-      - name: Run migrations
+      # …puis vérification complète du style (config dans setup.cfg).
+      - name: Lint — style complet
+        run: flake8 . --count
+
+      - name: Run migrations (environnement de test)
         run: python manage.py migrate --noinput
 
       - name: Run tests
-        run: python manage.py test
+        run: python manage.py test --verbosity=2
 
-  # ── 2. Build & publish the Docker image ────────────────────────────────────
+  # ── 2. Scan de sécurité des dépendances (avancé) ───────────────────────────
+  dependency-scan:
+    name: Scan sécurité des dépendances
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Audit des dépendances (pip-audit)
+        run: |
+          python -m pip install --upgrade pip pip-audit
+          # N'échoue pas la build sur une vulnérabilité (informatif) : retirer
+          # `|| true` pour rendre le scan bloquant.
+          pip-audit -r requirements.txt --desc || true
+
+  # ── 3. Construction & publication de l'image Docker ────────────────────────
   docker:
-    needs: test
+    name: Build & push image Docker
+    needs: [ test, dependency-scan ]
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Référence de l'image
+        id: meta
+        run: echo "image=${IMAGE_NAME}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push image
         uses: docker/build-push-action@v6
@@ -85,5 +129,38 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── 4. Scan de sécurité de l'image Docker (avancé) ─────────────────────────
+  image-scan:
+    name: Scan sécurité de l'image (Trivy)
+    needs: docker
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Scan de l'image avec Trivy
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ needs.docker.outputs.image }}
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "0"   # informatif ; passer à "1" pour bloquer sur CRITICAL/HIGH
+
+  # ── 5. Notification en cas d'échec de la pipeline (avancé) ─────────────────
+  notify-failure:
+    name: Notification d'échec
+    needs: [ test, dependency-scan, docker, image-scan ]
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: Signaler l'échec
+        run: |
+          echo "::error::La pipeline CI/CD a échoué sur ${GITHUB_REF} (${GITHUB_SHA})."
+          # Brancher ici un webhook Slack/Discord ou un e-mail, p. ex. :
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data "{\"text\":\"❌ CI/CD échouée : ${GITHUB_REPOSITORY}@${GITHUB_SHA}\"}" \
+          #   "${{ secrets.SLACK_WEBHOOK_URL }}"

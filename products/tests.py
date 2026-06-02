@@ -5,9 +5,12 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from django.core.exceptions import ValidationError
+
 from recommendation.engine import produits_similaires
 
 from .models import Avis, Categorie, Produit
+from .validators import TAILLE_MAX_IMAGE, valider_taille_image
 
 Utilisateur = get_user_model()
 
@@ -57,6 +60,22 @@ class AvisTests(TestCase):
         Avis.objects.create(produit=produit, utilisateur=u2, note=2)
         self.assertEqual(produit.note_moyenne, 3.0)
         self.assertEqual(produit.nombre_avis, 2)
+
+
+class UploadValidationTests(TestCase):
+    """§12 — les fichiers uploadés doivent être contrôlés."""
+
+    class _FakeFile:
+        def __init__(self, size):
+            self.size = size
+
+    def test_rejette_image_trop_volumineuse(self):
+        with self.assertRaises(ValidationError):
+            valider_taille_image(self._FakeFile(TAILLE_MAX_IMAGE + 1))
+
+    def test_accepte_image_dans_la_limite(self):
+        # Ne doit lever aucune exception.
+        valider_taille_image(self._FakeFile(TAILLE_MAX_IMAGE))
 
 
 class RecommendationTests(TestCase):
