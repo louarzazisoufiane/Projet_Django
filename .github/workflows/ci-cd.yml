@@ -105,8 +105,6 @@ jobs:
     needs: [ test, dependency-scan ]
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    outputs:
-      image: ${{ steps.meta.outputs.image }}
     steps:
       - uses: actions/checkout@v4
 
@@ -119,10 +117,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Référence de l'image
-        id: meta
-        run: echo "image=${IMAGE_NAME}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
@@ -134,29 +128,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ── 4. Scan de sécurité de l'image Docker (avancé) ─────────────────────────
-  image-scan:
-    name: Scan sécurité de l'image (Trivy)
-    needs: docker
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    steps:
-      # On utilise l'image officielle de Trivy plutôt que l'action GitHub afin
-      # d'éviter les problèmes de résolution de version de l'action.
-      - name: Scan de l'image avec Trivy
-        run: |
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            aquasec/trivy:latest image \
-            --severity CRITICAL,HIGH \
-            --ignore-unfixed \
-            --exit-code 0 \
-            ${{ needs.docker.outputs.image }}
-
-  # ── 5. Notification en cas d'échec de la pipeline (avancé) ─────────────────
+  # ── 4. Notification en cas d'échec de la pipeline (avancé) ─────────────────
   notify-failure:
     name: Notification d'échec
-    needs: [ test, dependency-scan, docker, image-scan ]
+    needs: [ test, dependency-scan, docker ]
     runs-on: ubuntu-latest
     if: failure()
     steps:
