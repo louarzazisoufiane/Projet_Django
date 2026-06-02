@@ -62,8 +62,15 @@ Application : http://127.0.0.1:8000 — Administration : http://127.0.0.1:8000/d
 
 ```bash
 cp .env.example .env          # renseignez SECRET_KEY, DEBUG=False, DB_*, POSTGRES_*
-docker compose up --build
+docker compose pull           # récupère l'image publiée sur Docker Hub
+docker compose up -d
 ```
+
+Le service `web` utilise l'image publiée par la pipeline CI/CD
+(`louarzazi/django-ecommerce:latest`). Pour épingler un tag précis (p. ex. un
+commit), définissez `WEB_IMAGE` dans `.env`, par exemple
+`WEB_IMAGE=louarzazi/django-ecommerce:<sha>`. Pour construire localement à la
+place, remplacez la ligne `image:` du service `web` par `build: .`.
 
 L'application est servie par Nginx sur http://localhost (port 80). Le conteneur web
 applique les migrations, collecte les fichiers statiques et crée le compte
