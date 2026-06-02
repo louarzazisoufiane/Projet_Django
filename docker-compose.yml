@@ -7,7 +7,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # Volume renommé pour forcer une réinitialisation propre de Postgres avec
+      # le mot de passe courant (l'ancien volume avait un mot de passe obsolète).
+      - postgres_data_v2:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -30,7 +32,7 @@ services:
       - "${WEB_PORT:-8130}:8000"
 
 volumes:
-  postgres_data:
+  postgres_data_v2:
   media_data:
   static_data:
 
