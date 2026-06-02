@@ -118,9 +118,7 @@ exécute la pipeline suivante.
 **Pipeline avancée (§11.2)**
 
 - scan de sécurité des dépendances (`pip-audit`) ;
-- séparation des environnements (variables de test dédiées, jamais de prod) ;
-- notification en cas d'échec de la pipeline (job `notify-failure`, webhook
-  Slack/Discord à brancher).
+- séparation des environnements (variables de test dédiées, jamais de prod).
 
 > Le scan des dépendances est configuré en mode informatif. Pour le rendre
 > bloquant : retirer `|| true` du `pip-audit`.

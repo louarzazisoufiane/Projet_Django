@@ -127,18 +127,3 @@ jobs:
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  # ── 4. Notification en cas d'échec de la pipeline (avancé) ─────────────────
-  notify-failure:
-    name: Notification d'échec
-    needs: [ test, dependency-scan, docker ]
-    runs-on: ubuntu-latest
-    if: failure()
-    steps:
-      - name: Signaler l'échec
-        run: |
-          echo "::error::La pipeline CI/CD a échoué sur ${GITHUB_REF} (${GITHUB_SHA})."
-          # Brancher ici un webhook Slack/Discord ou un e-mail, p. ex. :
-          # curl -X POST -H 'Content-type: application/json' \
-          #   --data "{\"text\":\"❌ CI/CD échouée : ${GITHUB_REPOSITORY}@${GITHUB_SHA}\"}" \
-          #   "${{ secrets.SLACK_WEBHOOK_URL }}"
