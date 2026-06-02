@@ -45,3 +45,12 @@ volumes:
   postgres_data:
   media_data:
   static_data:
+
+# Sous-réseau fixe pour éviter l'erreur Docker
+# « all predefined address pools have been fully subnetted » : Docker n'a plus
+# à allouer automatiquement une plage depuis le pool saturé du serveur.
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.123.45.0/24
