@@ -29,7 +29,7 @@ services:
     # gunicorn écoute sur 8000 dans le conteneur. On publie un port hôte (8130)
     # que Dokploy/Traefik (sur 80) pourra router, ou accessible directement.
     ports:
-      - "${WEB_PORT:-8130}:8000"
+      - "8130:8000"
 
 volumes:
   postgres_data_v2:
