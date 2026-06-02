@@ -6,4 +6,4 @@ FROM nginx:1.27-alpine
 # Remplace la conf par défaut par celle du projet.
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+EXPOSE 8000

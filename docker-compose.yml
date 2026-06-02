@@ -35,8 +35,8 @@ services:
     restart: unless-stopped
     depends_on:
       - web
-    # On ne publie PAS sur 80 (réservé au Traefik de Dokploy). Port configurable.
-    # nginx écoute sur 80 DANS le conteneur → on mappe <port hôte>:80.
+    # Le port 80 est réservé au reverse-proxy (Traefik) de Dokploy.
+    # nginx écoute sur 8000 DANS le conteneur → on expose <port hôte 8130>:8000.
     ports:
       - "${NGINX_PORT:-8130}:8000"
     volumes:
