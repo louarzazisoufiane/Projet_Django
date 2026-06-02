@@ -38,7 +38,7 @@ services:
     # On ne publie PAS sur 80 (réservé au Traefik de Dokploy). Port configurable.
     # nginx écoute sur 80 DANS le conteneur → on mappe <port hôte>:80.
     ports:
-      - "${NGINX_PORT:-8130}:80"
+      - "${NGINX_PORT:-8130}:8000"
     volumes:
       - media_data:/app/media:ro
       - static_data:/app/staticfiles:ro
